@@ -12,17 +12,24 @@ def message(name):
     message TEXT NOT NULL
 )""")
     message = request.args.get("message")
-
+    return_json = False #on default it should return a string
+    if request.args.get("return_json"): #if someone set the return_json flag and its true it should return json data
+        if request.args.get("return_json") == "True": #true is a string beacuse request.args.get("return_json") only returns strings
+            return_json = True
     cursor.execute("""INSERT INTO users (name, message)
                   VALUES (?, ?)""", (name, message))
     cursor.execute("SELECT * FROM users")
     randMessage = cursor.fetchall()
     cursor.execute("""SELECT COUNT(*) FROM users""")
     count = cursor.fetchone()[0]
-    #print(count)
-    randomMassage = randMessage[random.randrange(0, count)] # the entry for the random massege
-    randMessage = randomMassage[2] + " - " + randMessage[random.randrange(0, count)][1]
-    #print(randMessage)
+
+    randomMassage = randMessage[random.randrange(0, count)] # select the entry for the random massege
+    if return_json == False:
+        randMessage = randomMassage[2] + " - " + randomMassage[1]
+    else:
+        randMessage = {randMessage[2]: randMessage[1]}
+        randMessage = jsonify(randMessage)
+    #print(randomMassage)   #debug
     conn.commit()
     conn.close()
     return randMessage 
